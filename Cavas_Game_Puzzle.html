@@ -1,0 +1,272 @@
+<h1 class="head"> This is a GoNoWhere Game</h1>
+<body>
+<canvas id="canvas" width='960' height='640' style='border:2px solid;  background-color:rgb(233, 235, 254)'></canvas>
+<p>To win this game. <br>Collect all the red apples but do not touch any green bar on in the area.<br>You have two displayed data on the top: your score and your chance.<br>After you collect all the apples, you are very welcome to play this game again if you like.</p>
+<script>
+	
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var apples = []
+var applesColumn=5
+var applesRow=4
+var applesTap=30*4
+var appleRadius=2*5
+var x=canvas.width-10
+var y=canvas.height-10
+var objectWidth=2*5
+var objectHeight=2*5
+var dx=0
+var dy=0
+var rightPressed=false 
+var leftPressed=false 
+var upPressed=false 
+var downPressed=false 
+var fence=[]
+var fenceH=[]
+var fenceColumn=5
+var fenceRow=5
+var fenceWidth=10
+var fenceHeight=100*5
+var floatingFenceWidth=105
+var floatingFenceHeight=10
+var floatingFence={x:0,y:0}
+var floatingX=40*5
+var floatingY=5*5
+var step = 2*Math.PI/60
+var r = 10
+var angle=0 
+var score = 0
+var chance = 3
+
+document.addEventListener('keydown',keyDownHandler,false)
+document.addEventListener('keyup',keyUpHandler,false)
+document.addEventListener('mousemove',mouseMoveHandler,false)
+
+for(c=0;c<fenceColumn;c++){
+fence[c]={x:0,y:0,status:1}
+}
+for(c=0;c<fenceColumn;c++){
+	fenceH[c]=[]
+  {
+  	for(r=0;r<fenceRow;r++){
+    	fenceH[c][r]={x:0,y:0,status:1}
+    }
+  }
+}
+
+function drawFloatingFenceH(){
+	for(c=0;c<fenceColumn;c++){
+  	for(r=0;r<fenceRow;r++){
+    var fenceHX=1.5*c*applesTap+30*Math.sin(angle)+applesTap*0.5
+      var fenceHY=applesTap*r+45+10*Math.sin(angle)
+      fenceH[c][r].x=fenceHX
+      fenceH[c][r].y=fenceHY
+      ctx.beginPath()
+  		ctx.fillStyle='green'
+  		ctx.fillRect(fenceHX,fenceHY,floatingFenceWidth,floatingFenceHeight)
+  		ctx.fill()
+  		ctx.closePath()
+    }
+  }
+}
+
+function drawFence(){
+	for(c=0;c<fenceColumn;c++){
+  	var fenceX=c*1.5*applesTap+applesTap*0.5+20*Math.sin(angle)-40
+    var fenceY=60+r*Math.sin(angle)
+    fence[c].x=fenceX
+    fence[c].y=fenceY
+    ctx.beginPath()
+    ctx.fillStyle='green'
+    ctx.fillRect(fenceX,fenceY,fenceWidth,fenceHeight)
+    ctx.fill()
+    ctx.closePath()
+  }
+}
+
+for(c=0;c<applesColumn;c++){
+	apples[c]=[]
+	for(r=0;r<applesRow;r++)
+  	{
+    	apples[c][r]={x:0,y:0,status:1}
+    }
+}
+function drawApples(){
+	for(c=0;c<applesColumn;c++){
+  	for(r=0;r<applesRow;r++){
+    	if(apples[c][r].status==1){
+      var appleX=c*applesTap*1.5+applesTap+20*Math.sin(angle)
+      var appleY=r*applesTap+20*Math.cos(angle)+100
+      apples[c][r].x=appleX
+      apples[c][r].y=appleY
+      ctx.beginPath()
+      ctx.fillStyle='red'
+      ctx.arc(appleX,appleY,appleRadius,0,2*Math.PI)
+      ctx.fill()
+      ctx.closePath()
+      }
+    }
+  }
+  
+}
+function applesEatCheck(){
+		for(c=0;c<applesColumn;c++){
+  	for(r=0;r<applesRow;r++){
+    	var b = apples[c][r]
+      if(b.status==1){
+      	if((x+objectWidth/2-b.x)*(x+objectWidth/2-b.x)+(y+objectHeight/2-b.y)*(y+objectHeight/2-b.y)<=900){
+        	b.status=0
+          score+=1
+           if(score==applesColumn*applesRow){
+           	alert('You Win. Congratulation!')
+            document.location.reload()
+           }
+        }
+      }
+    }
+   }
+}
+
+function touchCheck(){
+	for(c=0;c<fenceColumn;c++){
+  	for(r=0;r<fenceRow;r++){
+    	if(x>fenceH[c][r].x-objectWidth&&x<fenceH[c][r].x+floatingFenceWidth&&y>fenceH[c][r].y-objectHeight&&y<fenceH[c][r].y+floatingFenceHeight){
+      	chance--
+        alert('Be careful, you touched the fence. Keep moving!')
+        x=20
+        y=canvas.height-20
+        dx=0
+        dy=0
+      }
+    }
+  }
+  for(c=0;c<fenceColumn;c++){
+  	if(x>fence[c].x-objectWidth&&x<fence[c].x+fenceWidth&&y>fence[c].y-objectHeight&&y<fence[c].y+fenceHeight){
+    	chance--
+      alert('Be careful, you touched the fence. Keep moving!')
+        x=20
+        y=canvas.height-20
+        dx=0
+        dy=0
+    }
+  }
+}
+
+
+function keyDownHandler(e){
+	if(e.keyCode==39){
+  	rightPressed=true
+  }
+  else if(e.keyCode==37){
+  	leftPressed=true 
+  }
+  else if (e.keyCode==40){
+  	downPressed=true 
+  }
+  else if (e.keyCode==38){
+  	upPressed=true
+  }
+}
+function keyUpHandler(e){
+	if(e.keyCode==39){
+  	rightPressed=false
+  }
+  else if(e.keyCode==37){
+  	leftPressed=false 
+  }
+  else if (e.keyCode==40){
+  	downPressed=false 
+  }
+  else if (e.keyCode==38){
+  	upPressed=false
+  }
+}
+
+function mouseMoveHandler(e){
+	var mouseX=e.clientX-canvas.getBoundingClientRect().left
+  var mouseY=e.clientY-canvas.getBoundingClientRect().top
+  if(mouseX>0&&mouseX<canvas.width){
+  	x=mouseX-objectWidth/2
+  }
+  if(mouseY>0&&mouseY<canvas.height){
+  	y=mouseY-objectHeight/2
+  }
+}
+
+function drawobject(){
+ctx.beginPath()
+ctx.fillStyle ='black'
+ctx.fillRect(x,y,objectWidth,objectHeight)
+ctx.fill()
+ctx.closePath()
+}
+
+function drawScore(){
+ctx.font = '20px Arial'
+ctx.fillStyle ='blue'
+ctx.fillText('Your score:'+score,20,20)
+}
+
+function drawChance(){
+if(chance>0){
+ctx.font = '20px Arial'
+ctx.fillStyle ='blue'
+ctx.fillText('Your chance:'+chance,canvas.width-200,20)
+}
+}
+
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height)
+drawobject()
+drawApples()
+drawFence()
+angle += step
+drawFloatingFenceH()
+applesEatCheck()
+touchCheck()
+drawScore()
+drawChance()
+
+if(rightPressed){
+dx+=0.1
+}
+if(leftPressed){
+dx-=0.1
+}
+if(upPressed){
+dy-=0.1
+}
+if(downPressed){
+dy+=0.1
+}
+x+=dx
+y+=dy
+if(x+objectWidth>=canvas.width){
+x=x+objectWidth-canvas.width
+}
+if(x<0){
+x=690
+}
+if(y<0){
+y=canvas.height
+}
+if(y>canvas.height)
+{
+y=0
+}
+if(chance<=0){
+alert("Game Over!")
+document.location.reload()
+chance=3
+}
+}
+setInterval(draw,50)
+</script>
+<style>
+  .head{
+  color:RGB(147, 137, 125);
+  font-size:20px;
+  font-family:sans-serif;
+}
+</style>
+</body>
